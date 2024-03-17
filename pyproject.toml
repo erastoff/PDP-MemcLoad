@@ -1,0 +1,20 @@
+[tool.poetry]
+name = "pdp-memcload"
+version = "0.1.0"
+description = ""
+authors = ["erastoff <yuriy.erastov@yandex.ru>"]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+memcache = "^0.12.0"
+google = "^3.0.0"
+protobuf = "^3.19.0"
+
+[tool.poetry.dev-dependencies]
+black = "^24.3.0"
+flake8 = "^7.0.0"
+isort = "^5.13.2"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
