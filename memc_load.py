@@ -35,8 +35,8 @@ def insert_appsinstalled(memc_addr, appsinstalled, dry_run=False):
     key = "%s:%s" % (appsinstalled.dev_type, appsinstalled.dev_id)
     ua.apps.extend(appsinstalled.apps)
     packed = ua.SerializeToString()
-    # @TODO persistent connection
-    # @TODO retry and timeouts!
+    # TODO persistent connection
+    # TODO retry and timeouts!
     try:
         if dry_run:
             logging.debug(
