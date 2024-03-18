@@ -35,15 +35,14 @@ def insert_appsinstalled(memc_addr, appsinstalled, dry_run=False):
     key = "%s:%s" % (appsinstalled.dev_type, appsinstalled.dev_id)
     ua.apps.extend(appsinstalled.apps)
     packed = ua.SerializeToString()
-    # TODO persistent connection
-    # TODO retry and timeouts!
+    memc = memcache.Client([memc_addr], socket_timeout=1)
     try:
         if dry_run:
             logging.debug(
                 "%s - %s -> %s" % (memc_addr, key, str(ua).replace("\n", " "))
             )
         else:
-            memc = memcache.Client([memc_addr])
+            # memc = memcache.Client([memc_addr])
             memc.set(key, packed)
     except Exception as e:
         logging.exception("Cannot write to memc %s: %s" % (memc_addr, e))
@@ -52,7 +51,7 @@ def insert_appsinstalled(memc_addr, appsinstalled, dry_run=False):
 
 
 def parse_appsinstalled(line):
-    line_parts = line.strip().split("\t")
+    line_parts = line.strip().decode("utf-8").split("\t")
     if len(line_parts) < 5:
         return
     dev_type, dev_id, lat, lon, raw_apps = line_parts
@@ -77,7 +76,8 @@ def main(options):
         "adid": options.adid,
         "dvid": options.dvid,
     }
-    for fn in glob.iglob(options.pattern):
+    path = options.pattern.lstrip("/")
+    for fn in glob.iglob(path):
         processed = errors = 0
         logging.info("Processing %s" % fn)
         fd = gzip.open(fn)
@@ -128,7 +128,7 @@ def prototest():
         packed = ua.SerializeToString()
         unpacked = appsinstalled_pb2.UserApps()
         unpacked.ParseFromString(packed)
-        assert ua == unpack
+        assert ua == unpacked
 
 
 if __name__ == "__main__":
