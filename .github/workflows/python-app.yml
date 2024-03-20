@@ -32,26 +32,6 @@ jobs:
         poetry config virtualenvs.in-project true  # Optional, but can help with consistency
         poetry env use python3.10
         poetry install
-
-#    - name: Configure poetry
-#      run: |
-#        python -m poetry config virtualenvs.in-project true
-
-#    - name: Cache the virtualenv
-#      uses: actions/cache@v2
-#      with:
-#        path: ./.venv
-#        key: ${{ runner.os }}-venv-${{ hashFiles('**/poetry.lock') }}
-
-    - name: Install dependencies
-      run: |
-        python -m poetry install
-
-
-#    - name: Install dependencies
-#      run: |
-#        pip install poetry
-#        poetry install
     - name: Lint with flake8
       run: |
         flake8 .
