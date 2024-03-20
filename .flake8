@@ -1,6 +1,6 @@
 [flake8]
 exclude =
-    migrations, venv
+    migrations, venv, appsinstalled_pb2.py
 
 ignore = F401,F402,E402
 
