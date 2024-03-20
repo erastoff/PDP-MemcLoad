@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+import multiprocessing
 import os
 import gzip
 import sys
@@ -51,7 +52,7 @@ def insert_appsinstalled(memc_addr, appsinstalled, dry_run=False):
 
 
 def parse_appsinstalled(line):
-    line_parts = line.strip().decode("utf-8").split("\t")
+    line_parts = line.strip().split("\t")
     if len(line_parts) < 5:
         return
     dev_type, dev_id, lat, lon, raw_apps = line_parts
@@ -69,18 +70,10 @@ def parse_appsinstalled(line):
     return AppsInstalled(dev_type, dev_id, lat, lon, apps)
 
 
-def main(options):
-    device_memc = {
-        "idfa": options.idfa,
-        "gaid": options.gaid,
-        "adid": options.adid,
-        "dvid": options.dvid,
-    }
-    path = options.pattern.lstrip("/")
-    for fn in glob.iglob(path):
-        processed = errors = 0
-        logging.info("Processing %s" % fn)
-        fd = gzip.open(fn)
+def process_file(file_path, device_memc, dry_run):
+    processed = errors = 0
+    logging.info("Processing %s" % file_path)
+    with gzip.open(file_path, "rt") as fd:
         for line in fd:
             line = line.strip()
             if not line:
@@ -92,27 +85,40 @@ def main(options):
             memc_addr = device_memc.get(appsinstalled.dev_type)
             if not memc_addr:
                 errors += 1
-                logging.error("Unknow device type: %s" % appsinstalled.dev_type)
+                logging.error("Unknown device type: %s" % appsinstalled.dev_type)
                 continue
-            ok = insert_appsinstalled(memc_addr, appsinstalled, options.dry)
+            ok = insert_appsinstalled(memc_addr, appsinstalled, dry_run)
             if ok:
                 processed += 1
             else:
                 errors += 1
-        if not processed:
-            fd.close()
-            dot_rename(fn)
-            continue
-
+    if not processed:
+        dot_rename(file_path)
+    else:
         err_rate = float(errors) / processed
         if err_rate < NORMAL_ERR_RATE:
-            logging.info("Acceptable error rate (%s). Successfull load" % err_rate)
+            logging.info("Acceptable error rate (%s). Successful load" % err_rate)
         else:
             logging.error(
                 "High error rate (%s > %s). Failed load" % (err_rate, NORMAL_ERR_RATE)
             )
-        fd.close()
-        dot_rename(fn)
+        dot_rename(file_path)
+
+
+def main(options):
+    device_memc = {
+        "idfa": options.idfa,
+        "gaid": options.gaid,
+        "adid": options.adid,
+        "dvid": options.dvid,
+    }
+    path = options.pattern.lstrip("/")
+    file_list = sorted(glob.iglob(path))
+    with multiprocessing.Pool() as pool:
+        pool.starmap(
+            process_file,
+            [(filename, device_memc, options.dry) for filename in file_list],
+        )
 
 
 def prototest():
