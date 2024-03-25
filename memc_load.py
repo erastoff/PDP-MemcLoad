@@ -22,6 +22,14 @@ AppsInstalled = collections.namedtuple(
     "AppsInstalled", ["dev_type", "dev_id", "lat", "lon", "apps"]
 )
 
+DEV_MEMC_CON = {}
+
+
+def get_memcache_client(memc_addr):
+    if memc_addr not in DEV_MEMC_CON:
+        DEV_MEMC_CON[memc_addr] = memcache.Client([memc_addr], socket_timeout=1)
+    return DEV_MEMC_CON[memc_addr]
+
 
 def dot_rename(path):
     head, fn = os.path.split(path)
@@ -37,7 +45,8 @@ def insert_appsinstalled(memc_addr, appsinstalled, dry_run=False):
     ua.apps.extend(appsinstalled.apps)
     packed = ua.SerializeToString()
     data = {key: packed}
-    memc = memcache.Client([memc_addr], socket_timeout=1)
+    # memc = memcache.Client([memc_addr], socket_timeout=1)
+    memc = get_memcache_client(memc_addr)
     try:
         if dry_run:
             logging.debug(
