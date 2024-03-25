@@ -36,6 +36,7 @@ def insert_appsinstalled(memc_addr, appsinstalled, dry_run=False):
     key = "%s:%s" % (appsinstalled.dev_type, appsinstalled.dev_id)
     ua.apps.extend(appsinstalled.apps)
     packed = ua.SerializeToString()
+    data = {key: packed}
     memc = memcache.Client([memc_addr], socket_timeout=1)
     try:
         if dry_run:
@@ -43,8 +44,8 @@ def insert_appsinstalled(memc_addr, appsinstalled, dry_run=False):
                 "%s - %s -> %s" % (memc_addr, key, str(ua).replace("\n", " "))
             )
         else:
-            # memc = memcache.Client([memc_addr])
-            memc.set(key, packed)
+            # memc.set(key, packed)
+            memc.set_multi(data)
     except Exception as e:
         logging.exception("Cannot write to memc %s: %s" % (memc_addr, e))
         return False
