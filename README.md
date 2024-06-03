@@ -1,4 +1,6 @@
-## PDP-MemcLoadV (Python Developer Professional Course)
+## PDP-MemcLoad (Python Developer Professional Course)
+
+Script optimization by using multiprocessing lib.
 
 #### Memcached loader:
 The terms of the task are given in the file homework.pdf
